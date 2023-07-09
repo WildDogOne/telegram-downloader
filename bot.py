@@ -34,7 +34,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
     reddit = Downloader(max_q=True)
     reddit.url = message
     reddit.overwrite = True
-    reddit.path = "data/"
+    reddit.path = "./data/"
     video_path = reddit.download()
 
     await update.message.reply_video(video_path)

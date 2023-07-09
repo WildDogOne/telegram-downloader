@@ -1,36 +1,66 @@
+from creds import telegram_token
+from redvid import Downloader
+
+from telegram import __version__ as TG_VER
+
+try:
+    from telegram import __version_info__
+except ImportError:
+    __version_info__ = (0, 0, 0, 0, 0)  # type: ignore[assignment]
+
+if __version_info__ < (20, 0, 0, "alpha", 1):
+    raise RuntimeError(
+        f"This example is not compatible with your current PTB version {TG_VER}. To view the "
+        f"{TG_VER} version of this example, "
+        f"visit https://docs.python-telegram-bot.org/en/v{TG_VER}/examples.html"
+    )
 from telegram import Update
-from telegram.ext import CommandHandler, MessageHandler, Filters, Updater
-import requests
-import os
-from creds import TOKEN
+from telegram.ext import Application, CommandHandler, ContextTypes, MessageHandler, filters
 
-def start(update: Update, context):
-    update.message.reply_text('Hello! Please send me a URL of an image and I will download and send it back to you.')
+from telegram.ext import Application, CommandHandler
 
-def handle_message(update: Update, context):
-    url = update.message.text
-    response = requests.get(url)
-    
-    if response.status_code == 200:
-        with open("image.jpg", 'wb') as f:
-            f.write(response.content)
-            
-        context.bot.send_photo(chat_id=update.effective_chat.id, photo=open('image.jpg', 'rb'))
-    else:
-        update.message.reply_text('Failed to download the image. Please check the URL.')
 
-def main():
-    updater = Updater(token=TOKEN, use_context=True)
-    dispatcher = updater.dispatcher
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Sends explanation on how to use the bot."""
+    await update.message.reply_text("Hi!\n"
+                                    "Use /on to start the coffee-machine\n"
+                                    "Use /off to stop the coffee-machine\n"
+                                    "Use /cancel to stop the heatup task, without turning off the machine\n"
+                                    "Or user /status to get the current power consumption")
 
-    start_handler = CommandHandler('start', start)
-    dispatcher.add_handler(start_handler)
+async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Handle chat messages."""
+    message = update.message.text
+    reddit = Downloader(max_q=True)
+    reddit.url = message
+    reddit.overwrite = True
+    reddit.path = "data/"
+    video_path = reddit.download()
 
-    message_handler = MessageHandler(Filters.text & (~Filters.command), handle_message)
-    dispatcher.add_handler(message_handler)
+    await update.message.reply_video(video_path)
+    #await update.message.reply_text(video_path)    
+    # Do something with the message
 
-    updater.start_polling()
+def main() -> None:
+    """Run bot."""
+    # Create the Application and pass it your bot's token.
+    application = Application.builder().token(telegram_token).build()
 
-if __name__ == '__main__':
+    """
+    Bot Menu Config
+    on - Turn on Coffee Machine
+    off - Turn off Coffee Machine
+    status - Get current power consumption
+    cancel - Cancle Heatup Task while leaving Coffee Machine on
+    """
+    # on different commands - answer in Telegram
+    application.add_handler(CommandHandler(["start", "help"], start))
+    #application.add_handler(MessageHandler(filters.Text, handle_message))
+    application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
+
+    # Run the bot until the user presses Ctrl-C
+    application.run_polling()
+
+
+if __name__ == "__main__":
     main()
-

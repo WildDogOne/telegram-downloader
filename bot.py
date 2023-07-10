@@ -1,6 +1,6 @@
 from creds import telegram_token
 from redvid import Downloader
-
+import os
 from telegram import __version__ as TG_VER
 
 try:
@@ -38,6 +38,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
     video_path = reddit.download()
 
     await update.message.reply_video(video_path)
+    os.remove(video_path)
     #await update.message.reply_text(video_path)    
     # Do something with the message
 
@@ -48,10 +49,7 @@ def main() -> None:
 
     """
     Bot Menu Config
-    on - Turn on Coffee Machine
-    off - Turn off Coffee Machine
-    status - Get current power consumption
-    cancel - Cancle Heatup Task while leaving Coffee Machine on
+    start - start the bot
     """
     # on different commands - answer in Telegram
     application.add_handler(CommandHandler(["start", "help"], start))

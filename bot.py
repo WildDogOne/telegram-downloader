@@ -36,12 +36,11 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
         reddit.url = message
         reddit.overwrite = True
         reddit.path = "./data/"
-        try:
-            video_path = reddit.download()
-            await update.message.reply_video(video_path)
-            os.remove(video_path)
-        except:
-            await update.message.reply_text("No video found")
+
+        video_path = reddit.download()
+        await update.message.reply_video(video_path)
+        os.remove(video_path)
+
     else:
         await update.message.reply_text("Please send a valid Reddit link")
 

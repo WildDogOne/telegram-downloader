@@ -41,7 +41,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
             await update.message.reply_video(video_path)
             os.remove(video_path)
         except:
-            await update.message.reply_text("Something went wrong")
+            await update.message.reply_text("No video found")
     else:
         await update.message.reply_text("Please send a valid Reddit link")
 

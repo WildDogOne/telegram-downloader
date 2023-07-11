@@ -31,16 +31,18 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Handle chat messages."""
     message = update.message.text
-    reddit = Downloader(max_q=True)
-    reddit.url = message
-    reddit.overwrite = True
-    reddit.path = "./data/"
-    video_path = reddit.download()
+    if message.startswith("https://www.reddit.com/r/"):
+        reddit = Downloader(max_q=True)
+        reddit.url = message
+        reddit.overwrite = True
+        reddit.path = "./data/"
+        video_path = reddit.download()
 
-    await update.message.reply_video(video_path)
-    os.remove(video_path)
-    #await update.message.reply_text(video_path)    
-    # Do something with the message
+        await update.message.reply_video(video_path)
+        os.remove(video_path)
+    else:
+        await update.message.reply_text("Please send a valid Reddit link")
+
 
 def main() -> None:
     """Run bot."""
